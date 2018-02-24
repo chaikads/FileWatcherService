@@ -36,7 +36,8 @@ namespace FileWatcherService.Services
                 try
                 {
                     var messages = await this.receiver.ReceiveMessages(dateTime, cancellationToken);
-                    await this.sender.SendMessages(messages, cancellationToken);
+                    var result = await this.sender.SendMessages(messages, cancellationToken);
+                    this.logger.Log(result ? "Сообщения посланы" : "Неудача");
                 }
                 catch (Exception e)
                 {

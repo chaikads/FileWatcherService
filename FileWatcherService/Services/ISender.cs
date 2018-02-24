@@ -8,6 +8,6 @@ namespace FileWatcherService.Services
 {
     public interface ISender : IDisposable
     {
-        Task SendMessages(IEnumerable<Message> messages, CancellationToken cancellationToken);
+        Task<bool> SendMessages(IEnumerable<Message> messages, CancellationToken cancellationToken);
     }
 }
