@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FileWatcherService.Models;
+using RestSharp;
 using Slack.Webhooks;
 
 namespace FileWatcherService.Services
@@ -19,15 +21,23 @@ namespace FileWatcherService.Services
         {           
         }
 
-        public async Task SendMessages(IEnumerable<Message> messages, CancellationToken cancellationToken)
+        public async Task<bool> SendMessages(IEnumerable<Message> messages, CancellationToken cancellationToken)
         {
-            foreach (var item in messages)
-            {
-                await this.SendMessage(item);
-            }
+            //var result = true;
+
+            //foreach (var item in messages)
+            //{
+            //    result = result || await this.SendMessage(item);               
+            //}
+
+            //return result;
+            // return await messages.Aggregate(Task.FromResult(true), async (r, x) => await r || await this.SendMessage(x));
+            var tasks = messages.Select(this.SendMessage);
+            var results = await Task.WhenAll(tasks);
+            return results.All(x => x);
         }
 
-        private async Task SendMessage(Message message)
+        private async Task<bool> SendMessage(Message message)
         {          
             var slackMessage = new SlackMessage
             {
@@ -37,7 +47,9 @@ namespace FileWatcherService.Services
                 Text = $"Отловленное событие: {message.Title} {message.ChangedDate} {message.Uri}"
             };
 
-            await client.PostAsync(slackMessage);
+            
+            var response = await client.PostAsync(slackMessage);
+            return response.ResponseStatus == ResponseStatus.Completed;
         }
     }
 }
